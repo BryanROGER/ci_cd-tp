@@ -26,37 +26,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        # On force la création du dossier allure-results
-        run: npm test
-        continue-on-error: true
+      # 4. Run tests (must use Allure reporter)
+      - name: Run tests and generate report
+        run: npx allure run -- npm run test
+        # This generates allure-results/ directory and creates allure-report/ with summary.json
 
-       # ÉTAPE DE DÉBOGAGE
+        # ÉTAPE DE DÉBOGAGE
       - name: List files (Debug)
         run: ls -R
 
-      # ÉTAPE DE VÉRIFICATION : On sauvegarde les résultats bruts
-      - name: Upload Allure Results
-        uses: actions/upload-artifact@v4
+      # 5. Post summary to PR
+      - name: Run Allure Action
+        uses: allure-framework/allure-action@v0
         with:
-          name: allure-results
-          path: allure-results # Vérifie bien que c'est le nom du dossier généré par Jest
-          retention-days: 1
-
-      # GÉNÉRATION DU RAPPORT
-      - name: Generate Allure Report
-        uses: simple-elf/allure-report-action@master
-        if: always()
-        with:
-          allure_results: allure-results
-          allure_report: allure-report
-          allure_history: allure-history
-          keep_reports: 20
-
-      # DÉPLOIEMENT (Pour voir le rapport via une URL)
-      - name: Deploy report to Github Pages
-        if: always()
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: allure-history
+          report-directory: "./allure-report"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
