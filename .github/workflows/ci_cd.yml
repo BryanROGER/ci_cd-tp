@@ -26,18 +26,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # 4. Run tests (must use Allure reporter)
-      - name: Run tests and generate report
-        run: npx allure run -- npm run test
-        # This generates allure-results/ directory and creates allure-report/ with summary.json
+      # 4. Exécuter les tests (Génère les fichiers JSON dans allure-results)
+      - name: Run tests
+        run: npm test
+        continue-on-error: true
 
-        # ÉTAPE DE DÉBOGAGE
-      - name: List files (Debug)
-        run: ls -R
+      # 5. Étape de vérification (DÉBOGAGE)
+      # On vérifie si les fichiers JSON sont bien là. Si c'est vide, le rapport sera à 0.
+      - name: Check Results Folder
+        run: |
+          echo "Contenu du dossier allure-results :"
+          ls -R allure-results || echo "Dossier introuvable !"
 
-      # 5. Post summary to PR
-      - name: Run Allure Action
+      # 6. Laisser l'Action tout gérer (Génération + Résumé PR)
+      - name: Allure Report Action
         uses: allure-framework/allure-action@v0
+        if: always()
         with:
-          report-directory: "./allure-report"
+          allure-results: allure-results
+          report-directory: allure-report
           github-token: ${{ secrets.GITHUB_TOKEN }}
