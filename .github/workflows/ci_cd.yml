@@ -1,46 +1,35 @@
 name: Tests with Allure Report
-
 on:
   push:
     branches: [master]
   pull_request:
     branches: [master]
-
 permissions:
   contents: write
   pull-requests: write
   checks: write
-
 jobs:
   test-and-report:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-
       - name: Install dependencies
         run: npm ci
-
-      # 4. Exécuter les tests
-      - name: Run tests
-        run: npm test
-        continue-on-error: true
-
-      # 5. Générer le rapport HTML (Syntaxe corrigée pour Allure 3.0)
-      # On retire --clean qui pose problème et on respecte l'ordre des arguments
-      - name: Generate Allure Report
-        run: npx allure generate -o allure-report allure-results
-
-      # 6. Poster le résumé sur la PR
-      # Ici, on ne met QUE les inputs valides pour cette action
-      - name: Post Allure Summary
+      # 4. Run tests (must use Allure reporter)
+      - name: Run tests and generate report
+        run: npx allure run -- npm run test
+        # This generates allure-results/ directory and creates allure-report/ with summary.json
+        # ÉTAPE DE DÉBOGAGE
+      - name: List files (Debug)
+        run: ls -R
+      # 5. Post summary to PR
+      - name: Run Allure Action
         uses: allure-framework/allure-action@v0
-        if: always()
         with:
-          report-directory: allure-report
+          report-directory: "./allure-report"
           github-token: ${{ secrets.GITHUB_TOKEN }}
