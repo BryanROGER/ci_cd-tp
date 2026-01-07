@@ -26,23 +26,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # 4. Exécuter les tests (Génère les fichiers JSON dans allure-results)
+      # 4. Exécuter les tests
       - name: Run tests
         run: npm test
         continue-on-error: true
 
-      # 5. Étape de vérification (DÉBOGAGE)
-      # On vérifie si les fichiers JSON sont bien là. Si c'est vide, le rapport sera à 0.
-      - name: Check Results Folder
-        run: |
-          echo "Contenu du dossier allure-results :"
-          ls -R allure-results || echo "Dossier introuvable !"
+      # 5. Générer le rapport HTML (Syntaxe corrigée pour Allure 3.0)
+      # On retire --clean qui pose problème et on respecte l'ordre des arguments
+      - name: Generate Allure Report
+        run: npx allure generate -o allure-report allure-results
 
-      # 6. Laisser l'Action tout gérer (Génération + Résumé PR)
-      - name: Allure Report Action
+      # 6. Poster le résumé sur la PR
+      # Ici, on ne met QUE les inputs valides pour cette action
+      - name: Post Allure Summary
         uses: allure-framework/allure-action@v0
         if: always()
         with:
-          allure-results: allure-results
           report-directory: allure-report
           github-token: ${{ secrets.GITHUB_TOKEN }}
