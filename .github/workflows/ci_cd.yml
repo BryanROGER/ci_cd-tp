@@ -1,0 +1,28 @@
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest # L'environnement d'exécution
+
+    steps:
+      # 1. Récupérer le code du dépôt
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Installer l'environnement (ex: Node.js)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 3. Installer les dépendances
+      - name: Install dependencies
+        run: npm install
+
+      # 4. Lancer les tests
+      - name: Run tests
+        run: npm test
