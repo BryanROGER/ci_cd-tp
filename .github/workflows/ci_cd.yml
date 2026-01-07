@@ -1,6 +1,8 @@
 name: Tests with Allure Report
 
 on:
+  push:
+    branches: [ master ]
   pull_request:
     branches: [master]
 
@@ -37,4 +39,4 @@ jobs:
         uses: allure-framework/allure-action@v0
         with:
           report-directory: "./allure-report"
-          github-token: ${{ secrets.TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
