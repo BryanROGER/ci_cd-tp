@@ -2,39 +2,44 @@ name: Tests with Allure Report
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
     branches: [master]
 
 permissions:
+  contents: write
   pull-requests: write
   checks: write
 
 jobs:
-  test:
+  test-and-report:
     runs-on: ubuntu-latest
-
     steps:
-      # 1. Checkout code
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2. Setup your language/runtime
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      # 3. Install dependencies
       - name: Install dependencies
         run: npm ci
 
-      # 4. Exécuter les tests (ils vont maintenant créer le dossier allure-results)
       - name: Run tests
+        # On force la création du dossier allure-results
         run: npm test
         continue-on-error: true
 
-      # 5. Générer le rapport Allure à partir des résultats
+      # ÉTAPE DE VÉRIFICATION : On sauvegarde les résultats bruts
+      - name: Upload Allure Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: allure-results # Vérifie bien que c'est le nom du dossier généré par Jest
+          retention-days: 1
+
+      # GÉNÉRATION DU RAPPORT
       - name: Generate Allure Report
         uses: simple-elf/allure-report-action@master
         if: always()
@@ -42,8 +47,9 @@ jobs:
           allure_results: allure-results
           allure_report: allure-report
           allure_history: allure-history
+          keep_reports: 20
 
-      # 6. Poster le résumé sur GitHub (visible en bas de la page Summary)
+      # DÉPLOIEMENT (Pour voir le rapport via une URL)
       - name: Deploy report to Github Pages
         if: always()
         uses: peaceiris/actions-gh-pages@v3
