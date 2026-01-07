@@ -31,6 +31,10 @@ jobs:
         run: npm test
         continue-on-error: true
 
+       # ÉTAPE DE DÉBOGAGE
+      - name: List files (Debug)
+        run: ls -R
+
       # ÉTAPE DE VÉRIFICATION : On sauvegarde les résultats bruts
       - name: Upload Allure Results
         uses: actions/upload-artifact@v4
