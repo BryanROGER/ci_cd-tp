@@ -1,0 +1,12 @@
+module.exports = {
+    testEnvironment: "node",
+    reporters: [
+        "default",
+        [
+            "<rootDir>/allure-reporter.js",
+            {
+                outputDir: "allure-results"
+            }
+        ]
+    ]
+};
