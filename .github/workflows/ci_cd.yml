@@ -1,35 +1,50 @@
-name: Tests with Allure Report
-on:
-  push:
-    branches: [master]
-  pull_request:
-    branches: [master]
-permissions:
-  contents: write
-  pull-requests: write
-  checks: write
+name: Publish Allure report to GitHub Pages
+on: [push]
 jobs:
-  test-and-report:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: "20"
+          node-version-file: .nvmrc
+          cache: npm
+
       - name: Install dependencies
         run: npm ci
-      # 4. Run tests (must use Allure reporter)
-      - name: Run tests and generate report
-        run: npx allure run -- npm run test
-        # This generates allure-results/ directory and creates allure-report/ with summary.json
-        # ÉTAPE DE DÉBOGAGE
-      - name: List files (Debug)
-        run: ls -R
-      # 5. Post summary to PR
-      - name: Run Allure Action
-        uses: allure-framework/allure-action@v0
+
+      - name: Run tests
+        run: npm test
+
+      - name: Generate Allure report
+        run: npx allure generate allure-results/
+
+      - name: Upload Allure report
+        uses: actions/upload-pages-artifact@v4
         with:
-          report-directory: "./allure-report"
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: allure-report
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Download Allure report
+        uses: actions/download-artifact@v5
+        with:
+          name: github-pages
+          path: allure-report
+
+      - name: Deploy Allure report to GH Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
